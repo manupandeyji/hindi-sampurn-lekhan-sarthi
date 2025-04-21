@@ -35,9 +35,15 @@ const Index: React.FC = () => {
     }
   }, [isDarkMode]);
 
+  useEffect(() => {
+    if (inputText && inputText.trim().length > 0) {
+      setTopWords(getWordFrequency(inputText));
+    }
+  }, [inputText]);
+
   const getWordFrequency = (text: string) => {
     const cleaned = text
-      .replace(/[।,,"'“”!?:—\-()\[\]0-9]/g, " ")
+      .replace(/[।,,"'""!?:—\-()\[\]0-9]/g, " ")
       .replace(/\s+/g, " ")
       .replace(/[\u200B-\u200D\uFEFF]/g, "")
       .trim();
@@ -52,37 +58,42 @@ const Index: React.FC = () => {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 25)
       .map(([word, count]) => ({ word, count }));
-
+    
+    console.log("Found top words: ", sorted.length);
     return sorted;
   };
 
   const processText = (text: string) => {
-    setIsProcessing(true);
-    setProgress(0);
     setInputText(text);
+    
+    const updatedTopWords = getWordFrequency(text);
+    setTopWords(updatedTopWords);
+    
+    if (text !== inputText) {
+      setIsProcessing(true);
+      setProgress(0);
 
-    setTopWords(getWordFrequency(text));
+      let currentProgress = 0;
+      const interval = setInterval(() => {
+        currentProgress += 10;
+        setProgress(currentProgress);
 
-    let currentProgress = 0;
-    const interval = setInterval(() => {
-      currentProgress += 10;
-      setProgress(currentProgress);
+        if (currentProgress >= 100) {
+          clearInterval(interval);
 
-      if (currentProgress >= 100) {
-        clearInterval(interval);
+          const punctuated = punctuateHindi(text);
+          const withIntroOutro = addIntroOutro(punctuated);
 
-        const punctuated = punctuateHindi(text);
-        const withIntroOutro = addIntroOutro(punctuated);
+          setProcessedText(withIntroOutro);
+          setDisplayText(withIntroOutro);
+          setIsProcessing(false);
+          setSearchWord('');
+          setTotalReplacements(0);
 
-        setProcessedText(withIntroOutro);
-        setDisplayText(withIntroOutro);
-        setIsProcessing(false);
-        setSearchWord('');
-        setTotalReplacements(0);
-
-        setTopWords(getWordFrequency(withIntroOutro));
-      }
-    }, 100);
+          setTopWords(getWordFrequency(withIntroOutro));
+        }
+      }, 100);
+    }
   };
 
   const handleSearch = (search: string) => {

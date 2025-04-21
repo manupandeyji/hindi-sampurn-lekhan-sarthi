@@ -14,7 +14,23 @@ const TextInput: React.FC<TextInputProps> = ({ onPunctuate, isProcessing }) => {
   const [text, setText] = useState<string>('');
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setText(e.target.value);
+    const newText = e.target.value;
+    setText(newText);
+    
+    // Immediately update the word frequency when text is pasted or typed
+    if (newText.length > 20) {
+      onPunctuate(newText);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    setText(pastedText);
+    
+    // Trigger word frequency calculation on paste
+    if (pastedText.length > 0) {
+      onPunctuate(pastedText);
+    }
   };
 
   const handlePunctuate = () => {
@@ -28,6 +44,7 @@ const TextInput: React.FC<TextInputProps> = ({ onPunctuate, isProcessing }) => {
         <Textarea
           value={text}
           onChange={handleTextChange}
+          onPaste={handlePaste}
           placeholder="यहां अपना हिंदी पाठ डालें..."
           className="min-h-[300px] p-4 text-base leading-relaxed font-hindi"
         />
