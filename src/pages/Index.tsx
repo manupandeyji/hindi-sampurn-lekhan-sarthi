@@ -50,7 +50,7 @@ const Index: React.FC = () => {
 
     const sorted = Object.entries(freq)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
+      .slice(0, 25)
       .map(([word, count]) => ({ word, count }));
 
     return sorted;
@@ -117,8 +117,8 @@ const Index: React.FC = () => {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-3 space-y-8">
               <TextInput 
                 onPunctuate={processText} 
                 isProcessing={isProcessing} 
@@ -130,7 +130,7 @@ const Index: React.FC = () => {
               />
             </div>
 
-            <div className="lg:col-span-1 flex flex-col gap-6">
+            <div className="lg:col-span-1 flex flex-col gap-4 max-h-[40vh] overflow-y-auto">
               <TopWordsBox words={topWords} />
               <SearchReplace 
                 onSearch={handleSearch}
