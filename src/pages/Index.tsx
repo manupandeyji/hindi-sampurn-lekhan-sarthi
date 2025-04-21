@@ -5,6 +5,7 @@ import SearchReplace from '@/components/SearchReplace';
 import ProgressBar from '@/components/ProgressBar';
 import AppHeader from '@/components/AppHeader';
 import TopWordsBox from '@/components/TopWordsBox';
+import TopWordFrequencyPanel from '@/components/TopWordFrequencyPanel';
 import { 
   punctuateHindi,
   addIntroOutro,
@@ -119,7 +120,6 @@ const Index: React.FC = () => {
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col`}>
       <AppHeader isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
-
       <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-screen-xl mx-auto">
           {isProcessing && (
@@ -141,8 +141,8 @@ const Index: React.FC = () => {
               />
             </div>
 
-            <div className="lg:col-span-1 flex flex-col gap-4 max-h-[40vh] overflow-y-auto">
-              <TopWordsBox words={topWords} />
+            <div className="lg:col-span-1 flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
+              <TopWordFrequencyPanel words={topWords} />
               <SearchReplace 
                 onSearch={handleSearch}
                 onReplace={handleReplace}
