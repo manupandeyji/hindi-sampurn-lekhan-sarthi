@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import TextInput from '@/components/TextInput';
 import TextOutput from '@/components/TextOutput';
 import SearchReplace from '@/components/SearchReplace';
 import ProgressBar from '@/components/ProgressBar';
 import AppHeader from '@/components/AppHeader';
+import TopWordsBox from '@/components/TopWordsBox';
 import { 
   punctuateHindi,
   addIntroOutro,
@@ -21,13 +21,12 @@ const Index: React.FC = () => {
   const [searchWord, setSearchWord] = useState<string>('');
   const [totalReplacements, setTotalReplacements] = useState<number>(0);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [topWords, setTopWords] = useState<{ word: string; count: number }[]>([]);
 
-  // Dark mode toggle
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Effect to toggle dark mode class
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -36,36 +35,56 @@ const Index: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Function to simulate processing with progress
+  const getWordFrequency = (text: string) => {
+    const cleaned = text
+      .replace(/[।,,"'“”!?:—\-()\[\]0-9]/g, " ")
+      .replace(/\s+/g, " ")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim();
+    const wordsArray = cleaned.split(" ").filter(w => w.length > 1);
+
+    const freq: Record<string, number> = {};
+    for (const word of wordsArray) {
+      freq[word] = (freq[word] || 0) + 1;
+    }
+
+    const sorted = Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([word, count]) => ({ word, count }));
+
+    return sorted;
+  };
+
   const processText = (text: string) => {
     setIsProcessing(true);
     setProgress(0);
     setInputText(text);
-    
-    // Simulate processing delay with progress updates
+
+    setTopWords(getWordFrequency(text));
+
     let currentProgress = 0;
     const interval = setInterval(() => {
       currentProgress += 10;
       setProgress(currentProgress);
-      
+
       if (currentProgress >= 100) {
         clearInterval(interval);
-        
-        // Apply punctuation
+
         const punctuated = punctuateHindi(text);
-        // Add intro and outro
         const withIntroOutro = addIntroOutro(punctuated);
-        
+
         setProcessedText(withIntroOutro);
         setDisplayText(withIntroOutro);
         setIsProcessing(false);
         setSearchWord('');
         setTotalReplacements(0);
+
+        setTopWords(getWordFrequency(withIntroOutro));
       }
     }, 100);
   };
 
-  // Handle search
   const handleSearch = (search: string) => {
     if (!processedText) return;
     
@@ -73,7 +92,6 @@ const Index: React.FC = () => {
     setDisplayText(highlightText(processedText, search));
   };
 
-  // Handle replace
   const handleReplace = (search: string, replace: string) => {
     if (!processedText) return;
     
@@ -81,7 +99,6 @@ const Index: React.FC = () => {
     setProcessedText(newText);
     setDisplayText(newText);
     
-    // Count replacements (simplified - just counting occurrences)
     const regex = new RegExp(search, 'gi');
     const matches = processedText.match(regex);
     const count = matches ? matches.length : 0;
@@ -91,7 +108,7 @@ const Index: React.FC = () => {
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col`}>
       <AppHeader isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
-      
+
       <main className="flex-1 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-screen-xl mx-auto">
           {isProcessing && (
@@ -99,21 +116,22 @@ const Index: React.FC = () => {
               <ProgressBar progress={progress} />
             </div>
           )}
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <TextInput 
                 onPunctuate={processText} 
                 isProcessing={isProcessing} 
               />
-              
+
               <TextOutput 
                 text={inputText} 
                 processedContent={displayText} 
               />
             </div>
-            
-            <div className="lg:col-span-1">
+
+            <div className="lg:col-span-1 flex flex-col gap-6">
+              <TopWordsBox words={topWords} />
               <SearchReplace 
                 onSearch={handleSearch}
                 onReplace={handleReplace}
@@ -124,7 +142,7 @@ const Index: React.FC = () => {
           </div>
         </div>
       </main>
-      
+
       <footer className="py-4 text-center text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border-t">
         <p className="font-hindi">हिंदी सम्पूर्ण लेखन साथी © {new Date().getFullYear()}</p>
       </footer>
